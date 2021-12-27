@@ -8,14 +8,14 @@ import traceback
 from system_stats.stats import SystemStats
 
 
-class SystemMonitor(node):
+class SystemMonitor(Node):
     def __init__(self):
         super().__init__("system_monitor")
         self.declare_parameter('separate_stats', True)
         try:
             self._separate_stats = self.get_parameter("separate_stats")
         except KeyError:
-            rospy.logfatal("SystemMonitor: error loading param")
+            self.get_logger().error("SystemMonitor: error loading param")
             raise
 
         self._stats = SystemStats(self._separate_stats, self)
@@ -41,3 +41,6 @@ def main(args=None):
     node_.destroy_node()
     rclpy.shutdown()
     
+
+if __name__ == "__main__":
+    main()

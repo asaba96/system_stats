@@ -1,7 +1,0 @@
-<launch>
-    <node name="system_monitor" pkg="system_stats" type="system_monitor.py">
-        <param name="pub_nodes" type="bool" value="false" />
-        <param name="pub_dead_nodes" type="bool" value="true" />
-        <param name="separate_stats" type="bool" value="true" />
-    </node>
-</launch> 

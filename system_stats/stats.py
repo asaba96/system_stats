@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # inspiration taken from
 #    https://github.com/dheera/ros-system-stats/blob/master/system_stats/nodes/system_stats_node
 # written by Andrew Saba
@@ -22,39 +24,39 @@ class SystemStats(object):
         # if publish individual topics for each stat
         if sep_stats:
             self.cpu_temp_pub  = node.create_publisher(
-                "system/cpu/temp",
                 Float32Stamped,
+                "system/cpu/temp",
                 10
             )
 
             self.cpu_pub = node.create_publisher(
-                "system/cpu/usage",
                 Float32Stamped,
+                "system/cpu/usage",
                 10
             )
 
             self.disk_pub = node.create_publisher(
-                "system/disk/usage",
                 Float32Stamped,
+                "system/disk/usage",
                 10
             )
 
             self.mem_pub = node.create_publisher(
-                "system/mem/usage_virtual",
                 Float32Stamped,
+                "system/mem/usage_virtual",
                 10
             )
 
             self.swap_pub = node.create_publisher(
-                "system/mem/usage_swap",
                 Float32Stamped,
+                "system/mem/usage_swap",
                 10
             )
 
 
         self.stat_pub = node.create_publisher(
-            "system/diagnostics",
             DiagnosticArray,
+            "system/diagnostics",
             10
         )
 
@@ -70,7 +72,7 @@ class SystemStats(object):
         status_disk.name = "Disk"
 
         header = Header()
-        header.stamp = self._node.get_clock().now()
+        header.stamp = self._node.get_clock().now().to_msg()
 
         if self.sep_stats:
             cpu_temp = Float32Stamped()
@@ -91,21 +93,21 @@ class SystemStats(object):
             cpu_coretemp = None
             if 'coretemp' in temps:
                 cpu_coretemp = mean(list(map(lambda x:x.current, temps['coretemp'])))
-                status_cpu.values.append(KeyValue("coretemp", str(cpu_coretemp)))
+                status_cpu.values.append(KeyValue(key = "coretemp", value = str(cpu_coretemp)))
 
             # cpu usage
             cpu_usage = mean(psutil.cpu_percent(percpu=True))
-            status_cpu.values.append(KeyValue("usage", str(cpu_usage)))
+            status_cpu.values.append(KeyValue(key = "usage", value = str(cpu_usage)))
 
             # disk
             disk_usage = psutil.disk_usage('/').percent
-            status_disk.values.append(KeyValue("usage", str(disk_usage)))
+            status_disk.values.append(KeyValue(key ="usage", value =  str(disk_usage)))
 
             # memory
             mem_usage_virtual = psutil.virtual_memory().percent
             mem_usage_swap = psutil.swap_memory().percent
-            status_mem.values.append(KeyValue("usage_virtual", str(mem_usage_virtual)))
-            status_mem.values.append(KeyValue("usage_swap", str(mem_usage_swap)))
+            status_mem.values.append(KeyValue( key = "usage_virtual",value =  str(mem_usage_virtual)))
+            status_mem.values.append(KeyValue( key = "usage_swap",value =  str(mem_usage_swap)))
 
             if self.sep_stats:
                 if cpu_coretemp is not None:
