@@ -3,7 +3,6 @@
 # written by Andrew Saba
 
 import psutil
-import rospy
 
 from system_stats.msg import Float32Stamped
 
@@ -16,46 +15,47 @@ def mean(list):
 
 
 class SystemStats(object):
-    def __init__(self, sep_stats):
+    def __init__(self, sep_stats, node):
         self.sep_stats = sep_stats
+        self._node = node
 
         # if publish individual topics for each stat
         if sep_stats:
-            self.cpu_temp_pub  = rospy.Publisher(
+            self.cpu_temp_pub  = node.create_publisher(
                 "system/cpu/temp",
                 Float32Stamped,
-                queue_size=10
+                10
             )
 
-            self.cpu_pub = rospy.Publisher(
+            self.cpu_pub = node.create_publisher(
                 "system/cpu/usage",
                 Float32Stamped,
-                queue_size=10
+                10
             )
 
-            self.disk_pub = rospy.Publisher(
+            self.disk_pub = node.create_publisher(
                 "system/disk/usage",
                 Float32Stamped,
-                queue_size=10
+                10
             )
 
-            self.mem_pub = rospy.Publisher(
+            self.mem_pub = node.create_publisher(
                 "system/mem/usage_virtual",
                 Float32Stamped,
-                queue_size=10
+                10
             )
 
-            self.swap_pub = rospy.Publisher(
+            self.swap_pub = node.create_publisher(
                 "system/mem/usage_swap",
                 Float32Stamped,
-                queue_size=10
+                10
             )
 
 
-        self.stat_pub = rospy.Publisher(
+        self.stat_pub = node.create_publisher(
             "system/diagnostics",
             DiagnosticArray,
-            queue_size=10
+            10
         )
 
         self.p = psutil.Process()
@@ -70,7 +70,7 @@ class SystemStats(object):
         status_disk.name = "Disk"
 
         header = Header()
-        header.stamp = rospy.Time.now()
+        header.stamp = self._node.get_clock().now()
 
         if self.sep_stats:
             cpu_temp = Float32Stamped()
