@@ -10,16 +10,14 @@ For node monitoring, this tool also keeps track of which nodes have died and how
 
 ### How do I get set up? ###
 
-Tested with ROS Melodic 18.04
+Tested with ROS2 Galactic 20.04
 
 Only dendency is psutil which can be installed with `pip install psutil`
 
-To launch, run `roslaunch system_stats system_monitor.launch`
+To launch, run `ros2 launch system_stats system_monitor.launch.py`
 
 Launch file provides the following parmaters:
 
-*  pub_nodes: default true, whether or not to publish per node stats
-*  pub_dead_nodes: default true, whether or not to publish a separate topic for dead nodes
 *  separate_stats: default true, whether or not to publish system stats on separate topics or just one diagnostics topic
 
 ### Contribution guidelines ###

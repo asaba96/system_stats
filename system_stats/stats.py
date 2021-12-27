@@ -13,7 +13,7 @@ from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 
 
 def mean(list):
-    return sum(list)/len(list)
+    return sum(list) / len(list)
 
 
 class SystemStats(object):
@@ -23,45 +23,27 @@ class SystemStats(object):
 
         # if publish individual topics for each stat
         if sep_stats:
-            self.cpu_temp_pub  = node.create_publisher(
-                Float32Stamped,
-                "system/cpu/temp",
-                10
+            self.cpu_temp_pub = node.create_publisher(
+                Float32Stamped, "system/cpu/temp", 10
             )
 
-            self.cpu_pub = node.create_publisher(
-                Float32Stamped,
-                "system/cpu/usage",
-                10
-            )
+            self.cpu_pub = node.create_publisher(Float32Stamped, "system/cpu/usage", 10)
 
             self.disk_pub = node.create_publisher(
-                Float32Stamped,
-                "system/disk/usage",
-                10
+                Float32Stamped, "system/disk/usage", 10
             )
 
             self.mem_pub = node.create_publisher(
-                Float32Stamped,
-                "system/mem/usage_virtual",
-                10
+                Float32Stamped, "system/mem/usage_virtual", 10
             )
 
             self.swap_pub = node.create_publisher(
-                Float32Stamped,
-                "system/mem/usage_swap",
-                10
+                Float32Stamped, "system/mem/usage_swap", 10
             )
 
-
-        self.stat_pub = node.create_publisher(
-            DiagnosticArray,
-            "system/diagnostics",
-            10
-        )
+        self.stat_pub = node.create_publisher(DiagnosticArray, "system/diagnostics", 10)
 
         self.p = psutil.Process()
-
 
     def update(self):
         status_cpu = DiagnosticStatus()
@@ -91,23 +73,29 @@ class SystemStats(object):
             # cpu temp
             temps = psutil.sensors_temperatures()
             cpu_coretemp = None
-            if 'coretemp' in temps:
-                cpu_coretemp = mean(list(map(lambda x:x.current, temps['coretemp'])))
-                status_cpu.values.append(KeyValue(key = "coretemp", value = str(cpu_coretemp)))
+            if "coretemp" in temps:
+                cpu_coretemp = mean(list(map(lambda x: x.current, temps["coretemp"])))
+                status_cpu.values.append(
+                    KeyValue(key="coretemp", value=str(cpu_coretemp))
+                )
 
             # cpu usage
             cpu_usage = mean(psutil.cpu_percent(percpu=True))
-            status_cpu.values.append(KeyValue(key = "usage", value = str(cpu_usage)))
+            status_cpu.values.append(KeyValue(key="usage", value=str(cpu_usage)))
 
             # disk
-            disk_usage = psutil.disk_usage('/').percent
-            status_disk.values.append(KeyValue(key ="usage", value =  str(disk_usage)))
+            disk_usage = psutil.disk_usage("/").percent
+            status_disk.values.append(KeyValue(key="usage", value=str(disk_usage)))
 
             # memory
             mem_usage_virtual = psutil.virtual_memory().percent
             mem_usage_swap = psutil.swap_memory().percent
-            status_mem.values.append(KeyValue( key = "usage_virtual",value =  str(mem_usage_virtual)))
-            status_mem.values.append(KeyValue( key = "usage_swap",value =  str(mem_usage_swap)))
+            status_mem.values.append(
+                KeyValue(key="usage_virtual", value=str(mem_usage_virtual))
+            )
+            status_mem.values.append(
+                KeyValue(key="usage_swap", value=str(mem_usage_swap))
+            )
 
             if self.sep_stats:
                 if cpu_coretemp is not None:

@@ -11,7 +11,7 @@ from system_stats.stats import SystemStats
 class SystemMonitor(Node):
     def __init__(self):
         super().__init__("system_monitor")
-        self.declare_parameter('separate_stats', True)
+        self.declare_parameter("separate_stats", True)
         try:
             self._separate_stats = self.get_parameter("separate_stats")
         except KeyError:
@@ -20,16 +20,17 @@ class SystemMonitor(Node):
 
         self._stats = SystemStats(self._separate_stats, self)
 
-        # update at 10hz
-        self.timer = self.create_timer(0.01, self.run)
-
+        # update at 5hz
+        self.timer = self.create_timer(0.2, self.run)
 
     def run(self):
         try:
             self._stats.update()
         except Exception as e:
             self.get_logger().error("SystemMonitor: error updating system stats")
-            self.get_logger().error("SystemMonitor:\n {}".format(traceback.format_exc(e)))
+            self.get_logger().error(
+                "SystemMonitor:\n {}".format(traceback.format_exc(e))
+            )
 
 
 def main(args=None):
@@ -40,7 +41,7 @@ def main(args=None):
 
     node_.destroy_node()
     rclpy.shutdown()
-    
+
 
 if __name__ == "__main__":
     main()
