@@ -12,6 +12,8 @@ For node monitoring, this tool also keeps track of which nodes have died and how
 
 Tested with ROS2 Galactic 20.04
 
+See branch `melodic` for the ROS version, that has been tested in 18.04.
+
 Only dendency is psutil which can be installed with `pip install psutil`
 
 To launch, run `ros2 launch system_stats system_monitor.launch.py`
