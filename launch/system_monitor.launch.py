@@ -14,11 +14,8 @@ from launch_ros.actions import PushRosNamespace
 
 
 def generate_launch_description():
-    # args that can be set from the command line or a default will be used
     seperate_stats_arg = DeclareLaunchArgument("seperate_stats", default_value="True")
 
-    # start another turtlesim_node in the turtlesim2 namespace
-    # and use args to set parameters
     sys_stats = Node(
         package="system_stats",
         executable="system_monitor.py",
