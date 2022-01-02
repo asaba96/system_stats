@@ -22,6 +22,7 @@ find_package(diagnostic_msgs REQUIRED)
 rosidl_generate_interfaces(
   ${PROJECT_NAME}
     "msg/Float32Stamped.msg"
+    "msg/UInt64Stamped.msg"
   DEPENDENCIES
     std_msgs
 )

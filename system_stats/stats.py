@@ -6,7 +6,7 @@
 
 import psutil
 
-from system_stats.msg import Float32Stamped
+from system_stats.msg import Float32Stamped, UInt64Stamped
 
 from std_msgs.msg import Header
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
@@ -20,6 +20,10 @@ class SystemStats(object):
     def __init__(self, sep_stats, node):
         self.sep_stats = sep_stats
         self._node = node
+
+        node.declare_parameter("network_interface", ["lo"])
+        interfaces_to_monitor = node.get_parameter("network_interface").value
+        self.network_ok = True
 
         # if publish individual topics for each stat
         if sep_stats:
@@ -41,6 +45,19 @@ class SystemStats(object):
                 Float32Stamped, "system/mem/usage_swap", 10
             )
 
+            self.interfaces = {}
+            for interface in interfaces_to_monitor:
+                rec_bytes_pub = node.create_publisher(
+                    UInt64Stamped,
+                    "system/network/{}/receive_bytes".format(interface),
+                    10,
+                )
+
+                send_bytes_pub = node.create_publisher(
+                    UInt64Stamped, "system/network/{}/sent_bytes".format(interface), 10
+                )
+                self.interfaces[interface] = (rec_bytes_pub, send_bytes_pub)
+
         self.stat_pub = node.create_publisher(DiagnosticArray, "system/diagnostics", 10)
 
         self.p = psutil.Process()
@@ -52,6 +69,8 @@ class SystemStats(object):
         status_mem.name = "Memory"
         status_disk = DiagnosticStatus()
         status_disk.name = "Disk"
+        status_network = DiagnosticStatus()
+        status_network.name = "Network"
 
         header = Header()
         header.stamp = self._node.get_clock().now().to_msg()
@@ -67,6 +86,10 @@ class SystemStats(object):
             mem.header = header
             swap = Float32Stamped()
             swap.header = header
+            send_bytes = UInt64Stamped()
+            send_bytes.header = header
+            rec_bytes = UInt64Stamped()
+            rec_bytes.header = header
 
         # one shot supposedly is faster since it uses cached values
         with self.p.oneshot():
@@ -97,6 +120,45 @@ class SystemStats(object):
                 KeyValue(key="usage_swap", value=str(mem_usage_swap))
             )
 
+            # network
+            if self.network_ok:
+                for interface, (rec_pub, send_pub) in self.interfaces.items():
+                    try:
+                        net_stat = psutil.net_io_counters(pernic=True, nowrap=True)[
+                            interface
+                        ]
+                        net_rec = int(net_stat.bytes_recv)
+                        net_sent = int(net_stat.bytes_sent)
+                    except Exception as e:
+                        self.get_logger().error(
+                            "SystemMonitor: error updating network stats for interface {}".format(
+                                interface
+                            )
+                        )
+                        self.get_logger().error(
+                            "SystemMonitor:\n {}".format(traceback.format_exc(e))
+                        )
+                        self.network_ok = False
+                    else:
+                        status_network.values.append(
+                            KeyValue(
+                                key="{}/sent_bytes".format(interface),
+                                value=str(net_sent),
+                            )
+                        )
+                        status_network.values.append(
+                            KeyValue(
+                                key="{}/receive_bytes".format(interface),
+                                value=str(net_rec),
+                            )
+                        )
+
+                        if self.sep_stats:
+                            rec_bytes.data = net_rec
+                            send_bytes.data = net_sent
+                            send_pub.publish(send_bytes)
+                            rec_pub.publish(rec_bytes)
+
             if self.sep_stats:
                 if cpu_coretemp is not None:
                     cpu_temp.data = cpu_coretemp
@@ -114,7 +176,7 @@ class SystemStats(object):
 
         # all stats
         msg = DiagnosticArray()
-        msg.status = [status_cpu, status_mem, status_disk]
+        msg.status = [status_cpu, status_mem, status_disk, status_network]
         msg.header = header
 
         self.stat_pub.publish(msg)
