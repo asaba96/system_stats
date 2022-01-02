@@ -21,9 +21,24 @@ class SystemStats(object):
         self.sep_stats = sep_stats
         self._node = node
 
-        node.declare_parameter("network_interface", ["lo"])
-        interfaces_to_monitor = node.get_parameter("network_interface").value
         self.network_ok = True
+        try:
+            interfaces_to_monitor = [
+                k for k in psutil.net_io_counters(pernic=True, nowrap=True)
+            ]
+            self._node.get_logger().info(
+                "SystemMonitor: monitoring interfaces \n{}".format(
+                    interfaces_to_monitor
+                )
+            )
+        except Exception as e:
+            self._node.get_logger().error(
+                "SystemMonitor: error getting network interfaces!"
+            )
+            self._node.get_logger().error(
+                "SystemMonitor:\n {}".format(traceback.format_exc(e))
+            )
+            self.network_ok = False
 
         # if publish individual topics for each stat
         if sep_stats:
@@ -130,12 +145,12 @@ class SystemStats(object):
                         net_rec = int(net_stat.bytes_recv)
                         net_sent = int(net_stat.bytes_sent)
                     except Exception as e:
-                        self.get_logger().error(
+                        self._node.get_logger().error(
                             "SystemMonitor: error updating network stats for interface {}".format(
                                 interface
                             )
                         )
-                        self.get_logger().error(
+                        self._node.get_logger().error(
                             "SystemMonitor:\n {}".format(traceback.format_exc(e))
                         )
                         self.network_ok = False
