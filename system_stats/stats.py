@@ -5,6 +5,7 @@
 # written by Andrew Saba
 
 import psutil
+import traceback
 
 from system_stats.msg import Float32Stamped, Float32StampedArray, UInt64Stamped
 
@@ -26,6 +27,7 @@ class SystemStats(object):
             interfaces_to_monitor = [
                 k for k in psutil.net_io_counters(pernic=True, nowrap=True)
             ]
+
             self._node.get_logger().info(
                 "SystemMonitor: monitoring interfaces \n{}".format(
                     interfaces_to_monitor
@@ -66,12 +68,12 @@ class SystemStats(object):
             for interface in interfaces_to_monitor:
                 rec_bytes_pub = node.create_publisher(
                     UInt64Stamped,
-                    "system/network/{}/receive_bytes".format(interface),
+                    "system/network/{}/receive_bytes".format(interface.replace(".", "_")),
                     10,
                 )
 
                 send_bytes_pub = node.create_publisher(
-                    UInt64Stamped, "system/network/{}/sent_bytes".format(interface), 10
+                    UInt64Stamped, "system/network/{}/sent_bytes".format(interface.replace(".", "_")), 10
                 )
                 self.interfaces[interface] = (rec_bytes_pub, send_bytes_pub)
 
