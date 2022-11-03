@@ -68,12 +68,12 @@ class SystemStats(object):
             for interface in interfaces_to_monitor:
                 rec_bytes_pub = node.create_publisher(
                     UInt64Stamped,
-                    "system/network/{}/receive_bytes".format(interface.replace(".", "_")),
+                    "system/network/{}/receive_bytes".format(interface.replace(".", "_").replace("-", "_")),
                     10,
                 )
 
                 send_bytes_pub = node.create_publisher(
-                    UInt64Stamped, "system/network/{}/sent_bytes".format(interface.replace(".", "_")), 10
+                    UInt64Stamped, "system/network/{}/sent_bytes".format(interface.replace(".", "_").replace("-", "_")), 10
                 )
                 self.interfaces[interface] = (rec_bytes_pub, send_bytes_pub)
 
