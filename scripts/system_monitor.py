@@ -5,7 +5,7 @@ from rclpy.node import Node
 
 import traceback
 
-from system_stats.stats import SystemStats
+from system_stats_library.stats import SystemStats
 
 
 class SystemMonitor(Node):
