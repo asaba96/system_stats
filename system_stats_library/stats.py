@@ -203,7 +203,7 @@ class SystemStats(object):
 
         # all stats
         msg = DiagnosticArray()
-        msg.status = [status_cpu, status_mem, status_disk, status_network]
+        msg.status = [status_cpu, status_cpu_cores, status_mem, status_disk, status_network]
         msg.header = header
 
         self.stat_pub.publish(msg)
